@@ -4,8 +4,6 @@ from datetime import datetime
 import hashlib
 
 '''
-# Think of it like writing and deploying code:
-
 flask db init                        # Set up deployment pipeline (one time)
 
 flask db migrate -m "Add users"      # Write the deployment script
@@ -25,8 +23,8 @@ class User(db.Model):
     name = db.Column(db.String(100))
 
     # Balances directly on user (Option A)
-    usd_balance = db.Column(db.Float, default=0.0, nullable=False)
-    lbp_balance = db.Column(db.Float, default=0.0, nullable=False)
+    usd_balance = db.Column(db.Numeric(precision=15, scale=2), default=0.0, nullable=False)
+    lbp_balance = db.Column(db.Numeric(precision=15, scale=2), default=0.0, nullable=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -102,7 +100,7 @@ class Transaction(db.Model):
     from_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for top-ups
     to_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable=True)  # For card payments
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(precision=15, scale=2), nullable=False)
     currency = db.Column(db.String(3), nullable=False)
     transaction_type = db.Column(db.Enum('p2p', 'card_payment', 'top_up', name='transaction_type'))
     status = db.Column(db.Enum('pending', 'completed', 'failed', name='transaction_status'), default='pending')

@@ -1,0 +1,29 @@
+# test user1 : (all in one line in terminal)
+curl -Method POST -Uri "http://localhost:5000/api/register"
+-Headers @{"Content-Type"="application/json"}
+-Body '{"name":"Test User 1", "email":"user1@test.com","password":"password123"}'
+
+# test user2 : (all in one line in terminal)
+curl -Method POST -Uri "http://localhost:5000/api/register"
+-Headers @{"Content-Type"="application/json"}
+-Body '{"name":"Test User 2", "email":"user2@test.com","password":"password123"}'
+
+
+# test top_up user1 : (all in one line in terminal)
+curl -Method POST -Uri "http://localhost:5000/api/top-up"
+-Headers @{"Content-Type"="application/json"} µ
+-Body '{"user_id": 1, "amount": 100, "currency": "USD"}'
+
+
+# text transfer from user1 to user2 : (all in one line in terminal)
+curl -Method POST -Uri "http://localhost:5000/api/transfer"
+-Headers @{"Content-Type"="application/json"}
+-Body '{"from_user_id": 1, "to_user_id": 2, "amount": 50, "currency": "USD"}'
+
+
+# test create-card for user1 : (all in one line in terminal)
+curl -Method POST -Uri "http://localhost:5000/api/create-card"
+-Headers @{"Content-Type"="application/json"}
+-Body '{"user_id": 1, "card_number": "545454******5454", "type": "virtual"}'
+
+
