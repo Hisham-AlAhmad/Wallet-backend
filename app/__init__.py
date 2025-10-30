@@ -20,8 +20,10 @@ def create_app():
     # Import and register routes
     from app.routes.auth import init_auth_routes
     from app.routes.wallet import init_wallet_routes
+    from app.routes.webhook import init_webhook_routes
 
     init_auth_routes(app)
     init_wallet_routes(app)
+    init_webhook_routes(app)
 
     return app

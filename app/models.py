@@ -98,7 +98,7 @@ class Transaction(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for top-ups
-    to_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    to_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable=True)  # For card payments
     amount = db.Column(db.Numeric(precision=15, scale=2), nullable=False)
     currency = db.Column(db.String(3), nullable=False)
