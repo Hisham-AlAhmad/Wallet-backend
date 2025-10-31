@@ -1,6 +1,7 @@
 # app/models.py
 from app import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
 
 '''
@@ -36,11 +37,10 @@ class User(db.Model):
                                             lazy='dynamic')
 
     def set_password(self, password):
-        """Hash password using SHA-256"""
-        self.password_hash = hashlib.sha256(password.encode()).hexdigest()
+        self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+        return check_password_hash(self.password_hash, password)
 
     def get_balance(self, currency):
         """Get balance for specific currency"""

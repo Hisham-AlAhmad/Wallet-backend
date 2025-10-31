@@ -15,47 +15,61 @@ def init_webhook_routes(app):
         """
         try:
             bank_data = request.get_json()
-            print("Bank webhook received:", bank_data)  # For debugging
+            print("Bank webhook received:", bank_data)
 
-            # Find the card
+            # STEP 1: Check idempotency FIRST (before any processing)
+            idempotency_key = bank_data.get('idempotency_key')
+            if idempotency_key:
+                existing = Transaction.query.filter_by(reference_id=idempotency_key).first()
+                if existing:
+                    # Already processed - return cached response
+                    if existing.status == 'completed':
+                        return jsonify(create_approve_response(bank_data, existing.sender, existing.currency)), 200
+                    else:
+                        return jsonify(create_decline_response(bank_data, "Previously declined")), 200
+
+            # STEP 2: Find the card
             card = Card.query.filter_by(card_number=bank_data['primaryAccountNumber']).first()
 
-            # Validation checks
+            # STEP 3: Validation checks
             if not card:
-                return create_decline_response(bank_data, "Card not found")
+                return jsonify(create_decline_response(bank_data, "Card not found")), 200
 
             if not card.is_active():
-                return create_decline_response(bank_data, "Card not active")
+                return jsonify(create_decline_response(bank_data, "Card not active")), 200
 
             user = card.user
             amount = Decimal(str(bank_data['amountTransaction']))
             currency = 'USD' if bank_data['currencyCode'] == '840' else 'LBP'
 
             if not user.can_debit(amount, currency):
-                return create_decline_response(bank_data, "Insufficient funds")
+                return jsonify(create_decline_response(bank_data, "Insufficient funds")), 200
 
-            # If all checks pass - APPROVE
+            # STEP 4: APPROVE - debit user
             user.debit(amount, currency)
 
-            # Create transaction record
+            # STEP 5: Create transaction with idempotency_key
             transaction = Transaction(
                 from_user_id=user.id,
-                to_user_id=None,  # Bank/merchant receives money
+                to_user_id=None,
                 card_id=card.id,
                 amount=amount,
                 currency=currency,
                 transaction_type='card_payment',
-                status='completed'
+                status='completed',
+                reference_id=idempotency_key  # ← Store the idempotency key!
             )
 
             db.session.add(transaction)
             db.session.commit()
 
-            return create_approve_response(bank_data, user, currency)
+            # STEP 6: Return approval response
+            return jsonify(create_approve_response(bank_data, user, currency)), 200
 
         except Exception as e:
+            db.session.rollback()
             print(f"Webhook error: {str(e)}")
-            return jsonify({'error': 'Authorization failed'}), 500
+            return jsonify(create_decline_response(bank_data, "System error")), 200
 
     def create_approve_response(bank_data, user, currency):
         """Create APPROVED response for bank"""
@@ -83,7 +97,7 @@ def init_webhook_routes(app):
                 {
                     "accountType": "00",
                     "amountType": "02",
-                    "currencyCode": "840",
+                    "currencyCode": bank_data['currencyCode'],
                     "currencyMinorUnit": "2",
                     "amountSign": "C",
                     "value": str(int(user.get_balance(currency) * 100)).zfill(12)  # Balance in minor units
@@ -117,7 +131,7 @@ def init_webhook_routes(app):
                 {
                     "accountType": "00",
                     "amountType": "02",
-                    "currencyCode": "840",
+                    "currencyCode": bank_data['currencyCode'],
                     "currencyMinorUnit": "2",
                     "amountSign": "C",
                     "value": "000000000000"  # Zero balance on decline
