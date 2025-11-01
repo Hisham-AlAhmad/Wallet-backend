@@ -19,13 +19,34 @@ def app():
         db.create_all()
         yield app
         db.session.remove()
-        db.drop_all()
 
 
 @pytest.fixture
 def client(app):
     """Create test client"""
     return app.test_client()
+
+
+@pytest.fixture(autouse=True)
+def reset_db(app):
+    """Reset database before AND after each test"""
+    # Clear BEFORE test
+    with app.app_context():
+        from app.models import User, Card, Transaction
+        db.session.query(Transaction).delete()
+        db.session.query(Card).delete()
+        db.session.query(User).delete()
+        db.session.commit()
+
+    yield  # Test runs here
+
+    # Clear AFTER test
+    with app.app_context():
+        from app.models import User, Card, Transaction
+        db.session.query(Transaction).delete()
+        db.session.query(Card).delete()
+        db.session.query(User).delete()
+        db.session.commit()
 
 
 class TestUserRegistration:
