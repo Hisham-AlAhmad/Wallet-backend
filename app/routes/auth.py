@@ -10,8 +10,8 @@ def init_auth_routes(app):
         try:
             data = request.get_json()
 
-            # Basic validation
-            if not data or not data.get('email') or not data.get('password'):
+            # Validation
+            if not data or not data.get('name') or not data.get('email') or not data.get('password'):
                 return jsonify({'error': 'Email and password required'}), 400
 
             # SQL: SELECT * FROM users WHERE email = ?
@@ -23,7 +23,7 @@ def init_auth_routes(app):
             # ORM: Create User object with parameters
             user = User(
                 email=data['email'],
-                name=data.get('name', ''),
+                name=data.get('name'),
                 usd_balance=0.0,
                 lbp_balance=0.0
             )

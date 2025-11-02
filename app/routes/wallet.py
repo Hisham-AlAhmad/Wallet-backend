@@ -8,6 +8,10 @@ from decimal import Decimal
 def init_wallet_routes(app):
     @app.route('/api/top-up', methods=['POST'])
     def top_up():
+        """
+        Top-up user balance.
+        Should have `user_id, amount, currency` in JSON body
+        """
         try:
             data = request.get_json()
 
@@ -57,6 +61,10 @@ def init_wallet_routes(app):
 
     @app.route('/api/transfer', methods=['POST'])
     def transfer():
+        """
+        Peer-to-peer transfer between users.
+        Should have `from_user_id, to_user_id, amount, currency` in JSON body
+        """
         try:
             data = request.get_json()
 
@@ -121,6 +129,10 @@ def init_wallet_routes(app):
 
     @app.route('/api/create-card', methods=['POST'])
     def create_card():
+        """
+        Create a new card for a user.
+        Should have `user_id, card_number, type` in JSON body
+        """
         try:
             data = request.get_json()
 
